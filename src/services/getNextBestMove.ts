@@ -5,12 +5,11 @@ export const getNextBestMove = (
 ): Promise<string> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(
-        Object.keys(notatedMoves).map((key) => ({
-          ...notatedMoves[key],
-          key,
-        }))[0].key
-      );
+      const validMoves = Object.keys(notatedMoves).map((key) => ({
+        ...notatedMoves[key],
+        key,
+      }));
+      resolve(validMoves[Math.floor(Math.random() * validMoves.length)].key);
     }, 800);
   });
 };
