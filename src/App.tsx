@@ -3,28 +3,39 @@ import GlobalStyle from "./styles/global";
 // @ts-ignore
 import chess from "chess";
 import ChessBoard from "./components/ChessBoard";
-import Piece from "./models/Piece";
 import Square from "./models/Square";
 
-const gameClient = chess.create();
+const gameClient = chess.create({ PGN: true });
+
+interface Status {
+  board: {
+    squares: Square[];
+  };
+  notatedMoves: {
+    [key: string]: {
+      dest: Square;
+      src: Square;
+    };
+  };
+}
 
 export const GameStatusContext = React.createContext<{
-  status: any;
-  move: (to: string, from: string) => void;
+  status: Status;
+  move: (to: string) => void;
   selectedSquare: Square | null;
   selectSquare: (square: Square | null) => void;
-  validMoves: any;
 }>({
   status: gameClient.getStatus(),
-  move: (to: string, from: string) => true,
+  move: () => true,
   selectedSquare: null,
-  selectSquare: (piece) => true,
-  validMoves: gameClient.validMoves,
+  selectSquare: () => true,
 });
 
-function App() {
-  const gameStatus = gameClient.getStatus();
+const App: React.FC<{}> = () => {
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
+  const [gameMeta, setGameMeta] = useState<{
+    status: Status;
+  }>({ status: gameClient.getStatus() });
   return (
     <>
       <GlobalStyle />
@@ -32,11 +43,16 @@ function App() {
         <div className="App-content">
           <GameStatusContext.Provider
             value={{
-              status: gameStatus,
-              move: (to: string, from: string) => false,
+              status: gameMeta.status,
+              move: (to: string) => {
+                gameClient.move(to);
+                setGameMeta({
+                  status: gameClient.getStatus(),
+                });
+                setSelectedSquare(null);
+              },
               selectedSquare,
               selectSquare: (square) => setSelectedSquare(square),
-              validMoves: gameClient.validMoves,
             }}
           >
             <ChessBoard />
@@ -45,6 +61,6 @@ function App() {
       </div>
     </>
   );
-}
+};
 
 export default App;

@@ -5,10 +5,7 @@ import orange from "@material-ui/core/colors/orange";
 import Avatar from "@material-ui/core/Avatar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
-import Piece from "../models/Piece";
 import { getPieceImage } from "../services/getPieceImage";
-import { useContext } from "react";
-import { GameStatusContext } from "../App";
 import SquareType from "../models/Square";
 import { makeStyles } from "@material-ui/core";
 import { useGameState } from "../hooks/useGameState";
@@ -55,27 +52,17 @@ const useStyles = makeStyles({
 });
 
 const ChessSquare: React.FC<{
-  piece?: Piece;
   square: SquareType;
-}> = ({ piece, square }) => {
-  //   console.log(piece);
-  const pieceImage = piece ? getPieceImage(piece) : null;
+}> = ({ square }) => {
+  const pieceImage = square.piece ? getPieceImage(square.piece) : null;
   const classes = useStyles();
-  const { status, selectSquare, selectedSquare } = useContext(
-    GameStatusContext
+  const { squareIsSelected, squareEnabled, onSelectSquare } = useGameState(
+    square
   );
-  const { squareIsSelected, squareEnabled } = useGameState(square);
   return (
     <StyledChessSquare
       className="square"
-      onClick={() => {
-        if (squareIsSelected) {
-          selectSquare(null);
-        } else {
-          selectSquare(square);
-        }
-      }}
-      // {...extraChessSquareProps}
+      onClick={onSelectSquare}
       // active={props.squareIsSelectable}
       disabled={!squareEnabled}
     >
@@ -85,10 +72,10 @@ const ChessSquare: React.FC<{
         </StyledCloseButton>
       )}
 
-      <p>
+      {/* <p>
         {square.file} {square.rank}
-      </p>
-      {piece && (
+      </p> */}
+      {square.piece && (
         <Avatar
           src={pieceImage || ""}
           className={squareIsSelected ? classes.greenAvatar : ""}

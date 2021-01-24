@@ -8,26 +8,46 @@ export const useGameState = (
 ): {
   squareIsSelected: boolean;
   squareEnabled: boolean;
+  onSelectSquare: () => void;
 } => {
-  const { status, validMoves, selectedSquare } = useContext(GameStatusContext);
-  const squareId = getSquareId(square);
-  const possibleSelection = validMoves.find((validMove: any) => {
-    return getSquareId(validMove.src) === squareId;
-  });
-  const possibleMoves = validMoves
-    .find((validMove: any) => {
-      return getSquareId(validMove.src) === getSquareId(selectedSquare);
-    })
-    ?.squares.map((possibleMoveSquare: Square) =>
-      getSquareId(possibleMoveSquare)
+  const { status, selectedSquare, selectSquare, move } = useContext(
+    GameStatusContext
+  );
+  const validMoves = Object.keys(status.notatedMoves).map((key) => ({
+    ...status.notatedMoves[key],
+    key,
+  }));
+  const currentSquareId = getSquareId(square);
+  const squareIsSelected = getSquareId(selectedSquare) === currentSquareId;
+  const possibleSelection = validMoves.find(
+    (validMove) => getSquareId(validMove.src) === currentSquareId
+  );
+  const availableMove = validMoves.find((validMove) => {
+    return (
+      getSquareId(validMove.dest) === currentSquareId &&
+      getSquareId(validMove.src) === getSquareId(selectedSquare)
     );
-  const squareIsSelected = getSquareId(selectedSquare) === getSquareId(square);
-  const squareEnabled = !selectedSquare
-    ? possibleSelection
-    : possibleMoves.includes(squareId);
+  });
+  const squareEnabled =
+    getSquareId(selectedSquare) === currentSquareId
+      ? true
+      : !selectedSquare
+      ? !!possibleSelection
+      : !!availableMove;
 
   return {
     squareIsSelected,
     squareEnabled,
+    onSelectSquare: () => {
+      if (getSquareId(selectedSquare) === currentSquareId) {
+        selectSquare(null);
+      } else if (!selectedSquare) {
+        selectSquare(square);
+      } else if (availableMove) {
+        move(availableMove.key);
+      } else {
+        // TODO
+      }
+    },
   };
 };
