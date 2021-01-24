@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import GlobalStyle from "./styles/global";
 // @ts-ignore
 import chess from "chess";
 import ChessBoard from "./components/ChessBoard";
 import Square from "./models/Square";
+import NotatedMoves from "./models/NotatedMoves";
+import { getNextBestMove } from "./services/getNextBestMove";
 
 const gameClient = chess.create({ PGN: true });
 
@@ -11,12 +13,7 @@ interface Status {
   board: {
     squares: Square[];
   };
-  notatedMoves: {
-    [key: string]: {
-      dest: Square;
-      src: Square;
-    };
-  };
+  notatedMoves: NotatedMoves;
 }
 
 export const GameStatusContext = React.createContext<{
@@ -36,6 +33,20 @@ const App: React.FC<{}> = () => {
   const [gameMeta, setGameMeta] = useState<{
     status: Status;
   }>({ status: gameClient.getStatus() });
+
+  const makeAIMove = useCallback(async (notatedMoves) => {
+    const nextBestMove = await getNextBestMove(notatedMoves);
+    gameClient.move(nextBestMove);
+    setGameMeta({
+      status: gameClient.getStatus(),
+    });
+    setSelectedSquare(null);
+  }, []);
+
+  useEffect(() => {
+    makeAIMove(gameMeta.status.notatedMoves);
+  }, [makeAIMove]);
+
   return (
     <>
       <GlobalStyle />
@@ -46,10 +57,12 @@ const App: React.FC<{}> = () => {
               status: gameMeta.status,
               move: (to: string) => {
                 gameClient.move(to);
+                const status = gameClient.getStatus();
                 setGameMeta({
-                  status: gameClient.getStatus(),
+                  status,
                 });
                 setSelectedSquare(null);
+                makeAIMove(status.notatedMoves);
               },
               selectedSquare,
               selectSquare: (square) => setSelectedSquare(square),

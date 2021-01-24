@@ -19,9 +19,12 @@ export const useGameState = (
   }));
   const currentSquareId = getSquareId(square);
   const squareIsSelected = getSquareId(selectedSquare) === currentSquareId;
-  const possibleSelection = validMoves.find(
-    (validMove) => getSquareId(validMove.src) === currentSquareId
-  );
+  const possibleSelection = validMoves.find((validMove) => {
+    return (
+      getSquareId(validMove.src) === currentSquareId &&
+      validMove.src.piece?.side.name !== "white"
+    );
+  });
   const availableMove = validMoves.find((validMove) => {
     return (
       getSquareId(validMove.dest) === currentSquareId &&
