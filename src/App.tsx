@@ -22,11 +22,13 @@ export const GameStatusContext = React.createContext<{
   move: (to: string, from: string) => void;
   selectedSquare: Square | null;
   selectSquare: (square: Square | null) => void;
+  validMoves: any;
 }>({
   status: gameClient.getStatus(),
   move: (to: string, from: string) => true,
   selectedSquare: null,
   selectSquare: (piece) => true,
+  validMoves: gameClient.validMoves,
 });
 
 function App() {
@@ -43,6 +45,7 @@ function App() {
               move: (to: string, from: string) => false,
               selectedSquare,
               selectSquare: (square) => setSelectedSquare(square),
+              validMoves: gameClient.validMoves,
             }}
           >
             <ChessBoard />

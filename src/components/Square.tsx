@@ -11,6 +11,7 @@ import { useContext } from "react";
 import { GameStatusContext } from "../App";
 import SquareType from "../models/Square";
 import { makeStyles } from "@material-ui/core";
+import { useGameState } from "../hooks/useGameState";
 
 const StyledChessSquare = styled.div<any>`
   height: 70px;
@@ -63,27 +64,30 @@ const ChessSquare: React.FC<{
   const { status, selectSquare, selectedSquare } = useContext(
     GameStatusContext
   );
-  const squareIsDisabled = !piece;
-  const squareIsSelected =
-    selectedSquare?.file === square.file &&
-    selectedSquare?.rank === square.rank;
+  const { squareIsSelected, squareEnabled } = useGameState(square);
   return (
     <StyledChessSquare
       className="square"
-      onClick={() => selectSquare(square)}
+      onClick={() => {
+        if (squareIsSelected) {
+          selectSquare(null);
+        } else {
+          selectSquare(square);
+        }
+      }}
       // {...extraChessSquareProps}
       // active={props.squareIsSelectable}
-      disabled={squareIsDisabled === true}
+      disabled={!squareEnabled}
     >
-      {/* {props.isSelectedPiece && (
-          <StyledCloseButton>
-            <CloseIcon />
-          </StyledCloseButton>
-        )} */}
+      {squareIsSelected && (
+        <StyledCloseButton>
+          <CloseIcon />
+        </StyledCloseButton>
+      )}
 
-      {/* <p>
+      <p>
         {square.file} {square.rank}
-      </p> */}
+      </p>
       {piece && (
         <Avatar
           src={pieceImage || ""}
