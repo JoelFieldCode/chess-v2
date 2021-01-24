@@ -6,16 +6,7 @@ import ChessBoard from "./components/ChessBoard";
 import Piece from "./models/Piece";
 import Square from "./models/Square";
 
-// declare var chess: any;
-
 const gameClient = chess.create();
-// const status = gameClient.getStatus();
-
-// console.log(JSON.stringify(status));
-// @ts-ignore
-// console.log(status);
-// @ts-ignore
-// console.log(status.board.squares);
 
 export const GameStatusContext = React.createContext<{
   status: any;

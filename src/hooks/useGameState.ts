@@ -14,12 +14,17 @@ export const useGameState = (
   const possibleSelection = validMoves.find((validMove: any) => {
     return getSquareId(validMove.src) === squareId;
   });
+  const possibleMoves = validMoves
+    .find((validMove: any) => {
+      return getSquareId(validMove.src) === getSquareId(selectedSquare);
+    })
+    ?.squares.map((possibleMoveSquare: Square) =>
+      getSquareId(possibleMoveSquare)
+    );
   const squareIsSelected = getSquareId(selectedSquare) === getSquareId(square);
-  const possibleMove = status.notatedMoves[squareId];
   const squareEnabled = !selectedSquare
     ? possibleSelection
-    : getSquareId(possibleMove?.dest) === squareId &&
-      getSquareId(selectedSquare) === getSquareId(possibleMove.src);
+    : possibleMoves.includes(squareId);
 
   return {
     squareIsSelected,
