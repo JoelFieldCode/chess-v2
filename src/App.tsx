@@ -21,24 +21,33 @@ export const GameStatusContext = React.createContext<{
   move: (to: string) => void;
   selectedSquare: Square | null;
   selectSquare: (square: Square | null) => void;
+  lastMove: any;
 }>({
   status: gameClient.getStatus(),
   move: () => true,
   selectedSquare: null,
   selectSquare: () => true,
+  lastMove: null,
 });
 
 const App: React.FC<{}> = () => {
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [gameMeta, setGameMeta] = useState<{
     status: Status;
-  }>({ status: gameClient.getStatus() });
+    lastMove: any;
+  }>({
+    status: gameClient.getStatus(),
+    lastMove:
+      gameClient.game.moveHistory[gameClient.game.moveHistory.length - 1],
+  });
 
   const makeAIMove = useCallback(async (notatedMoves) => {
     const nextBestMove = await getNextBestMove(notatedMoves);
     gameClient.move(nextBestMove);
     setGameMeta({
       status: gameClient.getStatus(),
+      lastMove:
+        gameClient.game.moveHistory[gameClient.game.moveHistory.length - 1],
     });
     setSelectedSquare(null);
   }, []);
@@ -55,11 +64,16 @@ const App: React.FC<{}> = () => {
           <GameStatusContext.Provider
             value={{
               status: gameMeta.status,
+              lastMove: gameMeta.lastMove,
               move: (to: string) => {
                 gameClient.move(to);
                 const status = gameClient.getStatus();
                 setGameMeta({
                   status,
+                  lastMove:
+                    gameClient.game.moveHistory[
+                      gameClient.game.moveHistory.length - 1
+                    ],
                 });
                 setSelectedSquare(null);
                 makeAIMove(status.notatedMoves);

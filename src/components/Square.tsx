@@ -9,6 +9,7 @@ import { getPieceImage } from "../services/getPieceImage";
 import SquareType from "../models/Square";
 import { makeStyles } from "@material-ui/core";
 import { useGameState } from "../hooks/useGameState";
+import { yellow } from "@material-ui/core/colors";
 
 const StyledChessSquare = styled.div<any>`
   height: 70px;
@@ -33,6 +34,17 @@ const StyledChessSquare = styled.div<any>`
     css`
       pointer-events: none;
     `};
+
+  ${(props: any) =>
+    props.isPrevSquare &&
+    css`
+      background: ${yellow[500]} !important;
+    `};
+  ${(props: any) =>
+    props.isCurrentMovedSquare &&
+    css`
+      background: ${yellow[500]} !important;
+    `};
 `;
 
 const StyledCloseButton = styled(IconButton)`
@@ -56,15 +68,21 @@ const ChessSquare: React.FC<{
 }> = ({ square }) => {
   const pieceImage = square.piece ? getPieceImage(square.piece) : null;
   const classes = useStyles();
-  const { squareIsSelected, squareEnabled, onSelectSquare } = useGameState(
-    square
-  );
+  const {
+    squareIsSelected,
+    squareEnabled,
+    onSelectSquare,
+    isPrevSquare,
+    isCurrentMovedSquare,
+  } = useGameState(square);
   return (
     <StyledChessSquare
       className="square"
       onClick={onSelectSquare}
       // active={props.squareIsSelectable}
       disabled={!squareEnabled}
+      isPrevSquare={isPrevSquare}
+      isCurrentMovedSquare={isCurrentMovedSquare}
     >
       {squareIsSelected && (
         <StyledCloseButton>

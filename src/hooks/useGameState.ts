@@ -9,8 +9,10 @@ export const useGameState = (
   squareIsSelected: boolean;
   squareEnabled: boolean;
   onSelectSquare: () => void;
+  isPrevSquare: boolean;
+  isCurrentMovedSquare: boolean;
 } => {
-  const { status, selectedSquare, selectSquare, move } = useContext(
+  const { status, selectedSquare, selectSquare, move, lastMove } = useContext(
     GameStatusContext
   );
   const validMoves = Object.keys(status.notatedMoves).map((key) => ({
@@ -41,6 +43,10 @@ export const useGameState = (
   return {
     squareIsSelected,
     squareEnabled,
+    isPrevSquare:
+      `${lastMove?.prevFile}${lastMove?.prevRank}` === currentSquareId,
+    isCurrentMovedSquare:
+      `${lastMove?.postFile}${lastMove?.postRank}` === currentSquareId,
     onSelectSquare: () => {
       if (getSquareId(selectedSquare) === currentSquareId) {
         selectSquare(null);

@@ -10,6 +10,6 @@ export const getNextBestMove = (
         key,
       }));
       resolve(validMoves[Math.floor(Math.random() * validMoves.length)].key);
-    }, 800);
+    }, 3000);
   });
 };
