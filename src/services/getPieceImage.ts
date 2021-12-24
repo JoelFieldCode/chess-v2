@@ -1,29 +1,31 @@
-import Piece from "../models/Piece";
+// import Piece from "../models/Piece";
+import { Piece } from "chess.js";
 
 export const getPieceImage = (piece: Piece): string => {
   switch (piece.type) {
-    case "bishop":
-      return piece.side.name === "black"
+    case "b":
+      return piece.color === "b"
         ? "https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg"
         : "https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg";
-    case "pawn":
-      return piece.side.name === "black"
+    case "p":
+      return piece.color === "b"
         ? "https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg"
         : "https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg";
-    case "rook":
-      return piece.side.name === "black"
+    case "r":
+      return piece.color === "b"
         ? "https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg"
         : "https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg";
-    case "queen":
-      return piece.side.name === "black"
+    case "q":
+      return piece.color === "b"
         ? "https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg"
         : "https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg";
-    case "king":
-      return piece.side.name === "black"
-        ? "https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg"
-        : "https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg";
-    case "knight":
-      return piece.side.name === "black"
+    case "k":
+      return piece.color === "b"
+        ? // todo find image
+          "https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg"
+        : "data:image/png;base64,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";
+    case "n":
+      return piece.color === "b"
         ? "https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg"
         : "https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg";
     default:

@@ -1,15 +1,18 @@
-import NotatedMoves from "../models/NotatedMoves";
+export const getNextBestMove = (fen: string): Promise<string> => {
+  return new Promise(async (resolve) => {
+    const res = await fetch("http://localhost:3001/bestMove", {
+      method: "POST",
+      body: JSON.stringify({
+        fen,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const prediction = await res
+      .json()
+      .then((payload: { bestmove: string; ponder?: string }) => payload);
 
-export const getNextBestMove = (
-  notatedMoves: NotatedMoves
-): Promise<string> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const validMoves = Object.keys(notatedMoves).map((key) => ({
-        ...notatedMoves[key],
-        key,
-      }));
-      resolve(validMoves[Math.floor(Math.random() * validMoves.length)].key);
-    }, 3000);
+    return resolve(prediction.bestmove);
   });
 };

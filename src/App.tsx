@@ -1,60 +1,64 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import GlobalStyle from "./styles/global";
-// @ts-ignore
-import chess from "chess";
+import { ChessInstance, Move, Piece, Square } from "chess.js";
 import ChessBoard from "./components/ChessBoard";
-import Square from "./models/Square";
-import NotatedMoves from "./models/NotatedMoves";
 import { getNextBestMove } from "./services/getNextBestMove";
+import SquareBox from "./components/Square";
 
-const gameClient = chess.create({ PGN: true });
+const Chess = require("chess.js");
+const chessClient: ChessInstance = Chess();
 
-interface Status {
-  board: {
-    squares: Square[];
-  };
-  notatedMoves: NotatedMoves;
-}
+type PieceMap = Partial<Record<Square, Piece | null>>;
+
+const getPieceMap = (chessInstance: ChessInstance) =>
+  chessInstance.SQUARES.reduce<PieceMap>((acc, square) => {
+    acc[square] = chessInstance.get(square);
+    return acc;
+  }, {});
 
 export const GameStatusContext = React.createContext<{
-  status: Status;
-  move: (to: string) => void;
+  move: (to: Move) => void;
   selectedSquare: Square | null;
   selectSquare: (square: Square | null) => void;
   lastMove: any;
+  pieceMap: PieceMap | null;
+  validMoves: Move[];
 }>({
-  status: gameClient.getStatus(),
   move: () => true,
   selectedSquare: null,
   selectSquare: () => true,
   lastMove: null,
+  validMoves: chessClient.moves({ verbose: true }),
+  pieceMap: null,
 });
 
 const App: React.FC<{}> = () => {
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
-  const [gameMeta, setGameMeta] = useState<{
-    status: Status;
-    lastMove: any;
-  }>({
-    status: gameClient.getStatus(),
-    lastMove:
-      gameClient.game.moveHistory[gameClient.game.moveHistory.length - 1],
-  });
+  const [pieceMap, setPieceMap] = useState<PieceMap | null>(
+    getPieceMap(chessClient)
+  );
+  const [validMoves, setValidMoves] = useState<Move[]>(
+    chessClient.moves({ verbose: true })
+  );
 
-  const makeAIMove = useCallback(async (notatedMoves) => {
-    const nextBestMove = await getNextBestMove(notatedMoves);
-    gameClient.move(nextBestMove);
-    setGameMeta({
-      status: gameClient.getStatus(),
-      lastMove:
-        gameClient.game.moveHistory[gameClient.game.moveHistory.length - 1],
-    });
-    setSelectedSquare(null);
-  }, []);
+  const makeAIMove = useCallback(async () => {
+    const fen = chessClient.fen();
+    const nextBestMove = await getNextBestMove(fen);
+    chessClient.move(nextBestMove, { sloppy: true });
+    setValidMoves(chessClient.moves({ verbose: true }));
+    setPieceMap(getPieceMap(chessClient));
+  }, [setValidMoves, setPieceMap]);
 
-  useEffect(() => {
-    makeAIMove(gameMeta.status.notatedMoves);
-  }, [makeAIMove]);
+  const onPlayerMove = useCallback(
+    (to: Move) => {
+      chessClient.move(to);
+      setSelectedSquare(null);
+      setValidMoves(chessClient.moves({ verbose: true }));
+      setPieceMap(getPieceMap(chessClient));
+      makeAIMove();
+    },
+    [setSelectedSquare, makeAIMove, setValidMoves, setPieceMap]
+  );
 
   return (
     <>
@@ -63,26 +67,19 @@ const App: React.FC<{}> = () => {
         <div className="App-content">
           <GameStatusContext.Provider
             value={{
-              status: gameMeta.status,
-              lastMove: gameMeta.lastMove,
-              move: (to: string) => {
-                gameClient.move(to);
-                const status = gameClient.getStatus();
-                setGameMeta({
-                  status,
-                  lastMove:
-                    gameClient.game.moveHistory[
-                      gameClient.game.moveHistory.length - 1
-                    ],
-                });
-                setSelectedSquare(null);
-                makeAIMove(status.notatedMoves);
-              },
+              pieceMap,
+              validMoves,
+              lastMove: null,
+              move: onPlayerMove,
               selectedSquare,
               selectSquare: (square) => setSelectedSquare(square),
             }}
           >
-            <ChessBoard />
+            <ChessBoard>
+              {chessClient.SQUARES.map((square) => (
+                <SquareBox square={square} key={square} />
+              ))}
+            </ChessBoard>
           </GameStatusContext.Provider>
         </div>
       </div>

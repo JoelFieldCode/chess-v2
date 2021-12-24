@@ -5,13 +5,19 @@ import orange from "@material-ui/core/colors/orange";
 import Avatar from "@material-ui/core/Avatar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
-import { getPieceImage } from "../services/getPieceImage";
-import SquareType from "../models/Square";
 import { makeStyles } from "@material-ui/core";
-import { useGameState } from "../hooks/useGameState";
 import { yellow } from "@material-ui/core/colors";
+import { Square } from "chess.js";
+import { useGameState } from "../hooks/useGameState";
 
-const StyledChessSquare = styled.div<any>`
+type SquareProps = {
+  active?: boolean;
+  disabled: boolean;
+  isPrevSquare: boolean;
+  isCurrentMovedSquare: boolean;
+};
+
+const StyledChessSquare = styled.div<SquareProps>`
   height: 70px;
   width: 70px;
   display: flex;
@@ -24,23 +30,23 @@ const StyledChessSquare = styled.div<any>`
   &:hover {
     background: ${indigo[500]} !important;
   }
-  ${(props: any) =>
+  ${(props) =>
     props.active &&
     css`
       // background: ${green[100]} !important;
     `};
-  ${(props: any) =>
+  ${(props) =>
     props.disabled &&
     css`
       pointer-events: none;
     `};
 
-  ${(props: any) =>
+  ${(props) =>
     props.isPrevSquare &&
     css`
       background: ${yellow[500]} !important;
     `};
-  ${(props: any) =>
+  ${(props) =>
     props.isCurrentMovedSquare &&
     css`
       background: ${yellow[500]} !important;
@@ -64,9 +70,8 @@ const useStyles = makeStyles({
 });
 
 const ChessSquare: React.FC<{
-  square: SquareType;
+  square: Square;
 }> = ({ square }) => {
-  const pieceImage = square.piece ? getPieceImage(square.piece) : null;
   const classes = useStyles();
   const {
     squareIsSelected,
@@ -74,6 +79,7 @@ const ChessSquare: React.FC<{
     onSelectSquare,
     isPrevSquare,
     isCurrentMovedSquare,
+    pieceImage,
   } = useGameState(square);
   return (
     <StyledChessSquare
@@ -89,11 +95,7 @@ const ChessSquare: React.FC<{
           <CloseIcon />
         </StyledCloseButton>
       )}
-
-      {/* <p>
-        {square.file} {square.rank}
-      </p> */}
-      {square.piece && (
+      {pieceImage && (
         <Avatar
           src={pieceImage || ""}
           className={squareIsSelected ? classes.greenAvatar : ""}

@@ -1,7 +1,7 @@
+import { Square } from "chess.js";
 import { useContext } from "react";
 import { GameStatusContext } from "../App";
-import Square from "../models/Square";
-import { getSquareId } from "../utils/getSquareId";
+import { getPieceImage } from "../services/getPieceImage";
 
 export const useGameState = (
   square: Square
@@ -11,30 +11,22 @@ export const useGameState = (
   onSelectSquare: () => void;
   isPrevSquare: boolean;
   isCurrentMovedSquare: boolean;
+  pieceImage?: string | null;
 } => {
-  const { status, selectedSquare, selectSquare, move, lastMove } = useContext(
-    GameStatusContext
-  );
-  const validMoves = Object.keys(status.notatedMoves).map((key) => ({
-    ...status.notatedMoves[key],
-    key,
-  }));
-  const currentSquareId = getSquareId(square);
-  const squareIsSelected = getSquareId(selectedSquare) === currentSquareId;
+  const { selectedSquare, selectSquare, move, lastMove, pieceMap, validMoves } =
+    useContext(GameStatusContext);
+
+  const piece = pieceMap?.[square];
+  const pieceImage = piece && getPieceImage(piece);
+  const squareIsSelected = selectedSquare === square;
   const possibleSelection = validMoves.find((validMove) => {
-    return (
-      getSquareId(validMove.src) === currentSquareId &&
-      validMove.src.piece?.side.name !== "white"
-    );
+    return validMove.from === square && validMove.color === "w";
   });
   const availableMove = validMoves.find((validMove) => {
-    return (
-      getSquareId(validMove.dest) === currentSquareId &&
-      getSquareId(validMove.src) === getSquareId(selectedSquare)
-    );
+    return validMove.to === square && validMove.from === selectedSquare;
   });
   const squareEnabled =
-    getSquareId(selectedSquare) === currentSquareId
+    square === selectedSquare
       ? true
       : !selectedSquare
       ? !!possibleSelection
@@ -43,17 +35,20 @@ export const useGameState = (
   return {
     squareIsSelected,
     squareEnabled,
-    isPrevSquare:
-      `${lastMove?.prevFile}${lastMove?.prevRank}` === currentSquareId,
-    isCurrentMovedSquare:
-      `${lastMove?.postFile}${lastMove?.postRank}` === currentSquareId,
+    isPrevSquare: false,
+    isCurrentMovedSquare: false,
+    // isPrevSquare:
+    //   `${lastMove?.prevFile}${lastMove?.prevRank}` === currentSquareId,
+    // isCurrentMovedSquare:
+    //   `${lastMove?.postFile}${lastMove?.postRank}` === currentSquareId,
+    pieceImage,
     onSelectSquare: () => {
-      if (getSquareId(selectedSquare) === currentSquareId) {
+      if (selectedSquare === square) {
         selectSquare(null);
       } else if (!selectedSquare) {
         selectSquare(square);
       } else if (availableMove) {
-        move(availableMove.key);
+        move(availableMove);
       } else {
         // TODO
       }
