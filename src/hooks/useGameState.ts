@@ -1,5 +1,5 @@
 import { Square } from "chess.js";
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
 import { GameStatusContext } from "../App";
 import { getPieceImage } from "../services/getPieceImage";
 
@@ -32,26 +32,24 @@ export const useGameState = (
       ? !!possibleSelection
       : !!availableMove;
 
+  const onSelectSquare = useCallback(() => {
+    if (selectedSquare === square) {
+      selectSquare(null);
+    } else if (!selectedSquare) {
+      selectSquare(square);
+    } else if (availableMove) {
+      move(availableMove);
+    } else {
+      // TODO
+    }
+  }, [selectedSquare, square, availableMove, selectSquare, move]);
+
   return {
     squareIsSelected,
     squareEnabled,
-    isPrevSquare: false,
-    isCurrentMovedSquare: false,
-    // isPrevSquare:
-    //   `${lastMove?.prevFile}${lastMove?.prevRank}` === currentSquareId,
-    // isCurrentMovedSquare:
-    //   `${lastMove?.postFile}${lastMove?.postRank}` === currentSquareId,
+    isPrevSquare: lastMove?.from === square,
+    isCurrentMovedSquare: lastMove?.to === square,
     pieceImage,
-    onSelectSquare: () => {
-      if (selectedSquare === square) {
-        selectSquare(null);
-      } else if (!selectedSquare) {
-        selectSquare(square);
-      } else if (availableMove) {
-        move(availableMove);
-      } else {
-        // TODO
-      }
-    },
+    onSelectSquare,
   };
 };
