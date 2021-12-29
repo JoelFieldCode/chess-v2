@@ -3,7 +3,6 @@ import GlobalStyle from "./styles/global";
 import { ChessInstance, Move, Piece, Square } from "chess.js";
 import ChessBoard from "./components/ChessBoard";
 import { getNextBestMove } from "./services/getNextBestMove";
-import SquareBox from "./components/Square";
 
 const Chess = require("chess.js");
 const chessClient: ChessInstance = Chess();
@@ -43,29 +42,27 @@ const App: React.FC<{}> = () => {
   const [lastMove, setLastMove] = useState<Move | null>(null);
 
   const recordHistory = useCallback(() => {
+    setValidMoves(chessClient.moves({ verbose: true }));
+    setPieceMap(getPieceMap(chessClient));
     const history = chessClient.history({ verbose: true });
     setLastMove(history[history.length - 1]);
-  }, [setLastMove]);
+  }, [setLastMove, setPieceMap, setValidMoves]);
 
   const makeAIMove = useCallback(async () => {
     const fen = chessClient.fen();
     const nextBestMove = await getNextBestMove(fen);
     chessClient.move(nextBestMove, { sloppy: true });
-    setValidMoves(chessClient.moves({ verbose: true }));
-    setPieceMap(getPieceMap(chessClient));
     recordHistory();
-  }, [setValidMoves, setPieceMap, recordHistory]);
+  }, [recordHistory]);
 
   const onPlayerMove = useCallback(
     (to: Move) => {
       chessClient.move(to);
       setSelectedSquare(null);
-      setValidMoves(chessClient.moves({ verbose: true }));
-      setPieceMap(getPieceMap(chessClient));
       recordHistory();
       makeAIMove();
     },
-    [setSelectedSquare, makeAIMove, setValidMoves, setPieceMap, recordHistory]
+    [setSelectedSquare, makeAIMove, recordHistory]
   );
 
   return (
@@ -83,11 +80,7 @@ const App: React.FC<{}> = () => {
               selectSquare: (square) => setSelectedSquare(square),
             }}
           >
-            <ChessBoard>
-              {chessClient.SQUARES.map((square) => (
-                <SquareBox square={square} key={square} />
-              ))}
-            </ChessBoard>
+            <ChessBoard squares={chessClient.SQUARES} />
           </GameStatusContext.Provider>
         </div>
       </div>
